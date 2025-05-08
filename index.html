@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="estilos.css">
+  <title>Tabela de Contas</title>
+  <style>
+
+  </style>
+</head>
+<body>
+  <h1>CONTROLE DE GASTOS MENSAIS</h1>
+
+  <label for="salarioInput">SALÁRIO: R$ </label>
+  <input type="number" id="salarioInput" step="0.01" value="0" onchange="calcularBalanco()">
+
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>CONTAS A PAGAR</th>
+        <th>CUSTOS (R$)</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="expenseBody">
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td colspan="2" id="total">-R$ 0,00</td>
+      </tr>
+      <tr>
+        <td>BALANÇO</td>
+        <td colspan="2" id="balanco">R$ 0,00</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <button onclick="addRow()">Adicionar Nova Linha</button>
+  <button onclick="exportarCSV()">Exportar para CSV</button>
+
+  <script>
+    function calculateTotal() {
+      const rows = document.querySelectorAll('#expenseBody tr');
+      if (!rows) return;
+      let total = 0;
+      rows.forEach(row => {
+        const input = row.querySelector('td:nth-child(2) input');
+        total += parseFloat(input.value || 0);
+      });
+      document.getElementById('total').textContent = `-R$ ${total.toFixed(2)}`;
+      salvarHistorico();
+      calcularBalanco();
+    }
+
+    function calcularBalanco() {
+      const totalTexto = document.getElementById('total').textContent;
+      const total = parseFloat(totalTexto.replace('-R$ ', '').replace(',', '.')) || 0;
+      const salario = parseFloat(document.getElementById('salarioInput').value) || 0;
+      const balanco = salario - total;
+      document.getElementById('balanco').textContent = `R$ ${balanco.toFixed(2)}`;
+    }
+
+    function removeRow(button) {
+      const row = button.parentElement.parentElement;
+      row.remove();
+      calculateTotal();
+    }
+
+    function addRow() {
+      const tbody = document.getElementById('expenseBody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="text" placeholder="Nova Despesa"></td>
+        <td><input type="number" value="0" step="0.01"></td>
+        <td><button onclick="removeRow(this)">Remover</button></td>
+      `;
+      tbody.appendChild(row);
+      attachInputListeners();
+    }
+
+    function attachInputListeners() {
+      const inputs = document.querySelectorAll('input[type="number"]');
+      inputs.forEach(input => {
+        input.removeEventListener('input', calculateTotal);
+        input.addEventListener('input', calculateTotal);
+      });
+    }
+
+    function salvarHistorico() {
+      const data = {
+        salario: document.getElementById('salarioInput').value,
+        despesas: []
+      };
+      document.querySelectorAll('#expenseBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const nome = cells[0].querySelector('input') ? cells[0].querySelector('input').value : cells[0].textContent;
+        const valor = cells[1].querySelector('input').value;
+        data.despesas.push({ nome, valor });
+      });
+      localStorage.setItem('historicoDespesas', JSON.stringify(data));
+    }
+
+    function carregarHistorico() {
+      const data = JSON.parse(localStorage.getItem('historicoDespesas')) || { salario: 0, despesas: [] };
+      document.getElementById('salarioInput').value = data.salario;
+      const tbody = document.getElementById('expenseBody');
+      tbody.innerHTML = '';
+      data.despesas.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="text" value="${item.nome}"></td>
+          <td><input type="number" value="${item.valor}" step="0.01"></td>
+          <td><button onclick="removeRow(this)">Remover</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+      attachInputListeners();
+      calculateTotal();
+    }
+
+    function exportarCSV() {
+      let linhas = [];
+      linhas.push(['CONTROLE DE GASTOS MENSAIS', '']);
+      const salario = parseFloat(document.getElementById('salarioInput').value || 0).toFixed(2);
+      linhas.push(['SALARIO', `R$ ${salario}`]);
+      linhas.push([]);
+      linhas.push(['CONTAS A PAGAR', 'CUSTOS']);
+
+      document.querySelectorAll('#expenseBody tr').forEach(row => {
+        const nome = row.querySelector('td:nth-child(1) input')?.value || row.querySelector('td:nth-child(1)').textContent;
+        const valor = parseFloat(row.querySelector('td:nth-child(2) input').value || 0).toFixed(2);
+        linhas.push([nome, `-R$ ${valor}`]);
+      });
+
+      const totalTexto = document.getElementById('total').textContent;
+      linhas.push(['TOTAL', totalTexto]);
+
+      const csv = linhas.map(l => l.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'controle_gastos.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    carregarHistorico();
+  </script>
+</body>
+</html>

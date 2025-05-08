@@ -1,0 +1,43 @@
+@charset "UTF-8";
+
+*{
+    padding: 0%;
+    margin: 0%;
+}
+h1{
+    font-size: 1.2em;
+}
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+  th, td {
+    width: 90%;
+    font-size: 0.86em;
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+  }
+  th {
+    background-color: #c8e6c9;
+  }
+  tfoot td {
+    width: 100%;
+    font-weight: bold;
+    background: #e0f2f1;
+  }
+  button {
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+  }
+  #salarioInput {
+    margin-bottom: 10px;
+    padding: 5px;
+  }
