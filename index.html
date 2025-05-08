@@ -3,10 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="estilos.css">
   <title>Tabela de Contas</title>
   <style>
-
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #c8e6c9;
+    }
+    tfoot td {
+      font-weight: bold;
+      background: #e0f2f1;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    #salarioInput {
+      margin-bottom: 10px;
+      padding: 5px;
+    }
   </style>
 </head>
 <body>
@@ -43,7 +72,6 @@
   <script>
     function calculateTotal() {
       const rows = document.querySelectorAll('#expenseBody tr');
-      if (!rows) return;
       let total = 0;
       rows.forEach(row => {
         const input = row.querySelector('td:nth-child(2) input');
@@ -124,7 +152,7 @@
       let linhas = [];
       linhas.push(['CONTROLE DE GASTOS MENSAIS', '']);
       const salario = parseFloat(document.getElementById('salarioInput').value || 0).toFixed(2);
-      linhas.push(['SALARIO', `R$ ${salario}`]);
+      linhas.push(['SALÁRIO', `R$ ${salario}`]);
       linhas.push([]);
       linhas.push(['CONTAS A PAGAR', 'CUSTOS']);
 
@@ -135,7 +163,10 @@
       });
 
       const totalTexto = document.getElementById('total').textContent;
+      const balancoTexto = document.getElementById('balanco').textContent;
+
       linhas.push(['TOTAL', totalTexto]);
+      linhas.push(['BALANÇO', balancoTexto]);
 
       const csv = linhas.map(l => l.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
