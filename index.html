@@ -89,11 +89,7 @@
     <label for="salarioInput">SALÁRIO 
       <input type="number" id="salarioInput" step="0.01" value="0" onchange="calcularBalanco()" />
     </label>
-    <div  id="botoes">
-      <button onclick="removerSelecionadas()">Remover Selecionadas</button>
-      <button onclick="addRow()">Adicionar Nova Linha</button>
-      <button onclick="exportarCSV()">Exportar para CSV</button>
-    </div>
+
   </div>
 
   <table id="expenseTable">
@@ -115,6 +111,11 @@
       </tr>
     </tfoot>
   </table>
+      <div  id="botoes">
+      <button onclick="removerSelecionadas()">Remover Selecionadas</button>
+      <button onclick="addRow()">Adicionar Nova Linha</button>
+      <button onclick="exportarCSV()">Exportar para CSV</button>
+    </div>
 
   <script>
     function calculateTotal() {
