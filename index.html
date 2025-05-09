@@ -2,34 +2,41 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Gastos</title>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       padding: 20px;
     }
 
-    .container {
-      max-width: 100%;
-      overflow-x: auto;
+    h1 {
+      text-align: center;
+    }
+
+    label, input, button {
+      font-size: 1rem;
+    }
+
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 15px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
-      min-width: 320px;
+      table-layout: fixed;
     }
 
     th, td {
       padding: 10px;
       border: 1px solid #ccc;
+      word-wrap: break-word;
       text-align: left;
     }
 
@@ -42,45 +49,29 @@
       background: #e0f2f1;
     }
 
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    tr.selected {
+      background-color: #ffecb3;
+    }
+
     button {
-      width: 90%;
-      padding: 5px 10px;
-      margin: 10px 0px;
+      padding: 8px;
       cursor: pointer;
+      width: fit-content;
     }
 
-    #salarioInput {
-      margin-bottom: 10px;
-      padding: 5px;
-    }
-
-    .selected {
-      background-color: #ffe0b2 !important;
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.2em;
-        text-align: center;
-      }
-
-      label, input, button {
-        font-size: 0.9em;
-      }
-
-      input[type="text"], input[type="number"] {
-        width: 100%;
-        box-sizing: border-box;
-      }
-
+    @media (max-width: 600px) {
       th, td {
-        font-size: 0.85em;
-        padding: 6px;
+        font-size: 0.9rem;
+        padding: 8px;
       }
 
-      button {
-        padding: 6px 10px;
-        font-size: 0.85em;
+      input, button {
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -88,34 +79,36 @@
 <body>
   <h1>CONTROLE DE GASTOS MENSAIS</h1>
 
-  <label for="salarioInput">SALÁRIO: R$ </label>
-  <input type="number" id="salarioInput" step="0.01" value="0" onchange="calcularBalanco()" />
-
-  <div class="container">
-    <table id="expenseTable">
-      <thead>
-        <tr>
-          <th>CONTAS A PAGAR</th>
-          <th>CUSTOS (R$)</th>
-        </tr>
-      </thead>
-      <tbody id="expenseBody"></tbody>
-      <tfoot>
-        <tr>
-          <td>TOTAL</td>
-          <td id="total">-R$ 0,00</td>
-        </tr>
-        <tr>
-          <td>BALANÇO</td>
-          <td id="balanco">R$ 0,00</td>
-        </tr>
-      </tfoot>
-    </table>
+  <div id="controls">
+    <label for="salarioInput">SALÁRIO: R$ 
+      <input type="number" id="salarioInput" step="0.01" value="0" onchange="calcularBalanco()" />
+    </label>
+    <div>
+      <button onclick="addRow()">Adicionar Nova Linha</button>
+      <button onclick="removerSelecionadas()">Remover Selecionadas</button>
+      <button onclick="exportarCSV()">Exportar para CSV</button>
+    </div>
   </div>
 
-  <button onclick="addRow()">Adicionar Nova Linha</button>
-  <button onclick="removerSelecionadas()">Excluir Selecionadas</button>
-  <button onclick="exportarCSV()">Exportar para CSV</button>
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>CONTAS A PAGAR</th>
+        <th>CUSTOS (R$)</th>
+      </tr>
+    </thead>
+    <tbody id="expenseBody"></tbody>
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td id="total">R$ 0,00</td>
+      </tr>
+      <tr>
+        <td>BALANÇO</td>
+        <td id="balanco">R$ 0,00</td>
+      </tr>
+    </tfoot>
+  </table>
 
   <script>
     function calculateTotal() {
@@ -125,14 +118,14 @@
         const input = row.querySelector('td:nth-child(2) input');
         total += parseFloat(input.value || 0);
       });
-      document.getElementById('total').textContent = `-R$ ${total.toFixed(2).replace('.', ',')}`;
+      document.getElementById('total').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
       salvarHistorico();
       calcularBalanco();
     }
 
     function calcularBalanco() {
       const totalTexto = document.getElementById('total').textContent;
-      const total = parseFloat(totalTexto.replace('-R$ ', '').replace(',', '.')) || 0;
+      const total = parseFloat(totalTexto.replace('R$', '').replace(',', '.')) || 0;
       const salario = parseFloat(document.getElementById('salarioInput').value) || 0;
       const balanco = salario - total;
       document.getElementById('balanco').textContent = `R$ ${balanco.toFixed(2).replace('.', ',')}`;
@@ -151,12 +144,12 @@
     }
 
     function removerSelecionadas() {
-      document.querySelectorAll('#expenseBody .selected').forEach(row => row.remove());
+      document.querySelectorAll('#expenseBody tr.selected').forEach(row => row.remove());
       calculateTotal();
     }
 
     function attachInputListeners() {
-      const inputs = document.querySelectorAll('#expenseBody input[type="number"]');
+      const inputs = document.querySelectorAll('input[type="number"]');
       inputs.forEach(input => {
         input.removeEventListener('input', calculateTotal);
         input.addEventListener('input', calculateTotal);
@@ -169,8 +162,9 @@
         despesas: []
       };
       document.querySelectorAll('#expenseBody tr').forEach(row => {
-        const nome = row.querySelector('td:nth-child(1) input')?.value || '';
-        const valor = row.querySelector('td:nth-child(2) input')?.value || 0;
+        const cells = row.querySelectorAll('td');
+        const nome = cells[0].querySelector('input')?.value || '';
+        const valor = cells[1].querySelector('input')?.value || '0';
         data.despesas.push({ nome, valor });
       });
       localStorage.setItem('historicoDespesas', JSON.stringify(data));
@@ -195,36 +189,37 @@
     }
 
     function exportarCSV() {
-      let linhas = [];
-      linhas.push(['CONTROLE DE GASTOS MENSAIS', '']);
-      const salario = parseFloat(document.getElementById('salarioInput').value || 0).toFixed(2);
-      linhas.push(['SALÁRIO', `R$ ${salario.replace('.', ',')}`]);
-      linhas.push([]);
-      linhas.push(['CONTAS A PAGAR', 'CUSTOS']);
+  let linhas = [];
+  linhas.push(['"CONTROLE DE GASTOS MENSAIS"', '']);
+  const salario = parseFloat(document.getElementById('salarioInput').value || 0).toFixed(2).replace('.', ',');
+  linhas.push(['"SALÁRIO"', `"R$ ${salario}"`]);
+  linhas.push([]);
+  linhas.push(['"CONTAS A PAGAR"', '"CUSTOS"']);
 
-      document.querySelectorAll('#expenseBody tr').forEach(row => {
-        const nome = row.querySelector('td:nth-child(1) input')?.value || '';
-        const valor = parseFloat(row.querySelector('td:nth-child(2) input')?.value || 0).toFixed(2);
-        linhas.push([nome, `-R$ ${valor.replace('.', ',')}`]);
-      });
+  document.querySelectorAll('#expenseBody tr').forEach(row => {
+    const nome = row.querySelector('td:nth-child(1) input')?.value || '';
+    const valor = parseFloat(row.querySelector('td:nth-child(2) input').value || 0).toFixed(2).replace('.', ',');
+    linhas.push([`"${nome}"`, `"R$ ${valor}"`]);
+  });
 
-      const total = document.getElementById('total').textContent;
-      const balanco = document.getElementById('balanco').textContent;
-      linhas.push(['TOTAL', total]);
-      linhas.push(['BALANÇO', balanco]);
+  const totalTexto = document.getElementById('total').textContent.trim();
+  const balancoTexto = document.getElementById('balanco').textContent.trim();
+  linhas.push(['"TOTAL"', `"${totalTexto}"`]);
+  linhas.push(['"BALANÇO"', `"${balancoTexto}"`]);
 
-      const csv = linhas.map(l => l.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'controle_gastos.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+  const csvContent = '\uFEFF' + linhas.map(l => l.join(';')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'controle_gastos.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
 
     carregarHistorico();
   </script>
 </body>
 </html>
-
