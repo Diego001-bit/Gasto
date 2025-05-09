@@ -14,7 +14,12 @@
     h1 {
       text-align: center;
     }
-
+    #botoes{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
     label, input, button {
       font-size: 1rem;
     }
@@ -59,7 +64,7 @@
     }
 
     button {
-      width: 80%;
+      margin: 5px 0px;
       padding: 8px;
       cursor: pointer;
       width: fit-content;
@@ -84,9 +89,9 @@
     <label for="salarioInput">SALÁRIO 
       <input type="number" id="salarioInput" step="0.01" value="0" onchange="calcularBalanco()" />
     </label>
-    <div>
-      <button onclick="addRow()">Adicionar Nova Linha</button>
+    <div  id="botoes">
       <button onclick="removerSelecionadas()">Remover Selecionadas</button>
+      <button onclick="addRow()">Adicionar Nova Linha</button>
       <button onclick="exportarCSV()">Exportar para CSV</button>
     </div>
   </div>
