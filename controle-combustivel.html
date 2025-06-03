@@ -1,0 +1,345 @@
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Combustível</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-size: 1em;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+    .row input {
+      flex: 1;
+    }
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .resultado {
+      margin-top: 20px;
+      font-size: 1em;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    table,
+    th,
+    td {
+      border: 1px solid #ccc;
+    }
+    th,
+    td {
+      padding: 8px;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      input,
+      select,
+      button {
+        font-size: 1em;
+      }
+      h1 {
+        font-size: 1.3em;
+      }
+      table,
+      th,
+      td {
+        font-size: 0.8em; 
+      }
+      .row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Combustível</h1>
+
+    <label>Estrada:</label>
+    <div class="row">
+      <input type="number" id="kmEstrada" placeholder="Km rodados (Ex: 200)" min="0" step="any" />
+      <input type="number" id="kmPorLitroEstrada" placeholder="Km por litro (Ex: 16.6)" min="0" step="any" />
+    </div>
+
+    <label>Cidade:</label>
+    <div class="row">
+      <input type="number" id="kmCidade" placeholder="Km rodados (Ex: 200)" min="0" step="any" />
+      <input type="number" id="kmPorLitroCidade" placeholder="Km por litro (Ex: 13.3)" min="0" step="any" />
+    </div>
+
+    <label for="precoLitro">Preço do litro do combustível (R$):</label>
+    <input type="number" step="0.01" id="precoLitro" placeholder="Ex: 6.31" min="0" />
+
+    <label for="tipoCombustivel">Tipo de combustível:</label>
+    <select id="tipoCombustivel">
+      <option value="gasolina">Gasolina</option>
+      <option value="etanol">Etanol</option>
+      <option value="diesel">Diesel</option>
+    </select>
+
+    <button type="button" id="btnLimpar">Limpar</button>
+    <button type="button" id="btnExportar">Exportar para Excel</button>
+
+    <div class="resultado" id="gastoEstrada">Gasto na estrada: sem dados</div>
+    <div class="resultado" id="gastoCidade">Gasto na cidade: sem dados</div>
+    <div class="resultado" id="gastoTotal">Total de custo: sem dados</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Preço Litro</th>
+          <th>Km Estrada</th>
+          <th>Km Cidade</th>
+        </tr>
+      </thead>
+      <tbody id="resumoTabela"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const kmEstradaInput = document.getElementById("kmEstrada");
+    const kmPorLitroEstradaInput = document.getElementById("kmPorLitroEstrada");
+    const kmCidadeInput = document.getElementById("kmCidade");
+    const kmPorLitroCidadeInput = document.getElementById("kmPorLitroCidade");
+    const precoLitroInput = document.getElementById("precoLitro");
+    const tipoCombustivelSelect = document.getElementById("tipoCombustivel");
+
+    const gastoEstradaDiv = document.getElementById("gastoEstrada");
+    const gastoCidadeDiv = document.getElementById("gastoCidade");
+    const gastoTotalDiv = document.getElementById("gastoTotal");
+    const resumoTabela = document.getElementById("resumoTabela");
+
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnExportar = document.getElementById("btnExportar");
+
+    let estadosSalvos = {};
+    let historicoCalculos = {};
+
+    function popularInputsComEstado(estado) {
+      kmEstradaInput.value = estado.rawKmEstrada || "";
+      kmPorLitroEstradaInput.value = estado.rawKmPorLitroEstrada || "";
+      kmCidadeInput.value = estado.rawKmCidade || "";
+      kmPorLitroCidadeInput.value = estado.rawKmPorLitroCidade || "";
+      precoLitroInput.value = estado.rawPrecoLitro || "";
+    }
+
+    function aoMudarCombustivel() {
+      const tipoAtual = tipoCombustivelSelect.value;
+      const estadoDoTipo = estadosSalvos[tipoAtual];
+      if (estadoDoTipo) {
+        popularInputsComEstado(estadoDoTipo);
+      } else {
+        popularInputsComEstado({});
+      }
+      calcular();
+    }
+
+    function limparCampos() {
+      popularInputsComEstado({});
+      gastoEstradaDiv.textContent = "Gasto na estrada: sem dados";
+      gastoCidadeDiv.textContent = "Gasto na cidade: sem dados";
+      gastoTotalDiv.textContent = "Total de custo: sem dados";
+      resumoTabela.innerHTML = "";
+      estadosSalvos = {};
+      historicoCalculos = {};
+      localStorage.removeItem("calculadoraCombustivelEstados");
+    }
+
+    function renderizarTabela() {
+      resumoTabela.innerHTML = "";
+      let totalGeral = 0;
+
+      for (const tipo in historicoCalculos) {
+        const c = historicoCalculos[tipo];
+        resumoTabela.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td>${tipo}</td>
+            <td>R$ ${c.precoLitro.toFixed(2).replace('.', ',')}</td>
+            <td>${c.kmEstrada}</td>
+            <td>${c.kmCidade}</td>
+          </tr>
+        `);
+        totalGeral += c.total;
+      }
+
+      if (Object.keys(historicoCalculos).length > 0) {
+        resumoTabela.insertAdjacentHTML("beforeend", `
+          <tr style="font-weight: bold; background-color: #f0f0f0;">
+            <td colspan="4" style="text-align: center;">TOTAL GERAL: R$ ${totalGeral.toFixed(2).replace('.', ',')}</td>
+          </tr>
+        `);
+      }
+    }
+
+    function calcular() {
+      const kmEstradaNum = parseFloat(kmEstradaInput.value);
+      const kmPorLitroEstradaNum = parseFloat(kmPorLitroEstradaInput.value);
+      const kmCidadeNum = parseFloat(kmCidadeInput.value);
+      const kmPorLitroCidadeNum = parseFloat(kmPorLitroCidadeInput.value);
+      const precoLitroNum = parseFloat(precoLitroInput.value);
+      const tipoCombustivel = tipoCombustivelSelect.value;
+
+      let calculoFoiValido = true;
+
+      if (isNaN(precoLitroNum) || precoLitroNum <= 0) {
+        gastoEstradaDiv.textContent = "Gasto na estrada: Preencha o preço do litro.";
+        gastoCidadeDiv.textContent = "Gasto na cidade: Preencha o preço do litro.";
+        gastoTotalDiv.textContent = "Total de custo: Preencha o preço do litro.";
+        resumoTabela.innerHTML = "";
+        calculoFoiValido = false;
+      }
+
+      const estradaValida = !isNaN(kmEstradaNum) && kmEstradaNum > 0 &&
+                            !isNaN(kmPorLitroEstradaNum) && kmPorLitroEstradaNum > 0;
+      const cidadeValida = !isNaN(kmCidadeNum) && kmCidadeNum > 0 &&
+                           !isNaN(kmPorLitroCidadeNum) && kmPorLitroCidadeNum > 0;
+
+      if (calculoFoiValido && !estradaValida && !cidadeValida) {
+        gastoEstradaDiv.textContent = "Gasto na estrada: Informe estrada ou cidade.";
+        gastoCidadeDiv.textContent = "Gasto na cidade: Informe estrada ou cidade.";
+        gastoTotalDiv.textContent = "Total de custo: Informe estrada ou cidade.";
+        resumoTabela.innerHTML = "";
+        calculoFoiValido = false;
+      }
+
+      let gastoEstrada = 0;
+      let gastoCidade = 0;
+      let total = 0;
+
+      if (calculoFoiValido) {
+        if (estradaValida) {
+          gastoEstrada = (kmEstradaNum / kmPorLitroEstradaNum) * precoLitroNum;
+          gastoEstradaDiv.textContent = "Gasto na estrada: R$ " + gastoEstrada.toFixed(2).replace('.', ',');
+        } else {
+          gastoEstradaDiv.textContent = "Gasto na estrada: sem dados";
+        }
+
+        if (cidadeValida) {
+          gastoCidade = (kmCidadeNum / kmPorLitroCidadeNum) * precoLitroNum;
+          gastoCidadeDiv.textContent = "Gasto na cidade: R$ " + gastoCidade.toFixed(2).replace('.', ',');
+        } else {
+          gastoCidadeDiv.textContent = "Gasto na cidade: sem dados";
+        }
+
+        total = gastoEstrada + gastoCidade;
+        gastoTotalDiv.textContent = "Total de custo: R$ " + total.toFixed(2).replace('.', ',');
+
+        historicoCalculos[tipoCombustivel] = {
+          precoLitro: precoLitroNum,
+          kmEstrada: estradaValida ? kmEstradaNum.toFixed(1) : "-",
+          kmCidade: cidadeValida ? kmCidadeNum.toFixed(1) : "-",
+          total: total
+        };
+
+        renderizarTabela();
+
+        estadosSalvos[tipoCombustivel] = {
+          rawKmEstrada: kmEstradaInput.value,
+          rawKmPorLitroEstrada: kmPorLitroEstradaInput.value,
+          rawKmCidade: kmCidadeInput.value,
+          rawKmPorLitroCidade: kmPorLitroCidadeInput.value,
+          rawPrecoLitro: precoLitroInput.value
+        };
+
+        localStorage.setItem("calculadoraCombustivelEstados", JSON.stringify(estadosSalvos));
+      }
+    }
+
+    function exportarCSV() {
+      const rows = [["Tipo", "Preço do litro", "Km estrada", "Km cidade"]];
+      for (const tipo in historicoCalculos) {
+        const c = historicoCalculos[tipo];
+        rows.push([
+          tipo,
+          `R$ ${c.precoLitro.toFixed(2).replace('.', ',')}`,
+          c.kmEstrada,
+          c.kmCidade
+        ]);
+      }
+
+      if (rows.length === 1) {
+        alert("Faça um cálculo primeiro.");
+        return;
+      }
+
+      let csvContent = "\uFEFF";
+      rows.forEach((rowArray) => {
+        let row = rowArray.map((item) => `"${String(item).replace(/"/g, '""')}"`).join(";");
+        csvContent += row + "\r\n";
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", "gastos_combustivel.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    btnLimpar.addEventListener("click", limparCampos);
+    btnExportar.addEventListener("click", exportarCSV);
+
+    window.addEventListener("load", () => {
+      const estadosJSON = localStorage.getItem("calculadoraCombustivelEstados");
+      if (estadosJSON) estadosSalvos = JSON.parse(estadosJSON);
+      const tipoAtual = tipoCombustivelSelect.value;
+      if (estadosSalvos[tipoAtual]) {
+        popularInputsComEstado(estadosSalvos[tipoAtual]);
+      }
+      calcular();
+    });
+
+    tipoCombustivelSelect.addEventListener("change", aoMudarCombustivel);
+
+    kmEstradaInput.addEventListener("input", calcular);
+    kmPorLitroEstradaInput.addEventListener("input", calcular);
+    kmCidadeInput.addEventListener("input", calcular);
+    kmPorLitroCidadeInput.addEventListener("input", calcular);
+    precoLitroInput.addEventListener("input", calcular);
+  </script>
+</body>
+</html>
