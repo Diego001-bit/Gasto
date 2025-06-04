@@ -3,15 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
   <title>Controle de Gastos</title>
   <style>
+    *{
+      padding: 0%;
+      margin: 0%;
+      text-decoration: none;
+      font-style: none;
+    }
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       padding: 20px;
+      height: 94vh;
+    }
+    #menuprimeiro{
+      position: fixed;
+      display: flex;
+      justify-content: center;
+      top: 60px;
+      width: 75%;
+      max-width: 300px;
+      margin: 20px 0px;
+      right: -300px;
+      background-color: rgba(0, 255, 157, 0.719);
+    }
+
+    #aba-menu{
+      display: flex;
+      justify-content: center;
+      margin: 20px 0px;
+    }
+
+    p{
+      color: black;
+      margin-top: 15px;
+      font-size: 1.4em;
+    }
+    a :hover{
+      font-weight: bolder;
+      color: whitesmoke;
+    }
+    body>.material-symbols-outlined {
+      font-size: 3em;
+      position: absolute;
+      top: 15px;
+      right: 10px;
+      
     }
 
     h1 {
+      margin-top: 36px;
       text-align: center;
     }
     #botoes{
@@ -75,7 +118,10 @@
         font-size: 0.9rem;
         padding: 8px;
       }
-
+      menu{
+        width: 45%;
+        max-width: 200px;
+      }
       input, button {
         font-size: 0.9rem;
       }
@@ -83,8 +129,31 @@
   </style>
 </head>
 <body>
-  <menu>
-    
+<span class="material-symbols-outlined" onclick="menu()">
+menu
+</span>
+  <menu id="menuprimeiro">
+<div id="aba-menu">
+  <div id="caminhos">
+    <a href="controle-combustivel.html">
+      <p>Gastos & Combustivel <span class="material-symbols-outlined">
+open_in_new
+</span></p>
+
+      </p>
+    </a>
+    <a href="">
+      <p>Aprenda Mais<span class="material-symbols-outlined">
+open_in_new
+</span></p>
+    </a>
+    <a href="">
+      <p>Central de Ajuda<span class="material-symbols-outlined">
+open_in_new
+</span></p>
+    </a>
+  </div>
+</div>
   </menu>
   <h1>CONTROLE DE GASTOS MENSAIS</h1>
 
@@ -117,10 +186,20 @@
       <div  id="botoes">
       <button onclick="removerSelecionadas()">Remover Selecionadas</button>
       <button onclick="addRow()">Adicionar Nova Linha</button>
-      <button onclick="exportarCSV()">Exportar para CSV</button>
+      <button onclick="exportarCSV()">Exportar para CSV </button>
     </div>
 
   <script>
+    function menu(){
+      let aba = document.getElementById("menuprimeiro")
+    if(aba.style.right == '-300px'){
+        aba.style.right ='0px'
+        botao[0].style.color="transparent"
+    }else{
+        aba.style.right='-300px'
+    }
+
+    }
     function calculateTotal() {
       const rows = document.querySelectorAll('#expenseBody tr');
       let total = 0;
