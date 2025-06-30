@@ -113,12 +113,14 @@
         tr.selected {
             background-color: #ffecb3;
         }
+        /* General button styles - can be overridden by more specific rules */
         button {
             margin: 5px 0px;
             padding: 8px;
             cursor: pointer;
-            width: fit-content;
+            width: fit-content; /* Default, can be overridden */
         }
+
         /* Styles for the new chart container */
         #graficoContainer {
             width: 95%; /* Increased width */
@@ -140,6 +142,37 @@
             display: none;
         }
 
+        /* --- Estilos Profissionais para os Botões --- */
+        #botoes button {
+            background-color: #4CAF50; /* Verde profissional */
+            color: white;
+            padding: 12px 24px; /* Mais preenchimento */
+            border: none; /* Sem borda padrão */
+            border-radius: 8px; /* Cantos levemente arredondados */
+            font-weight: bold; /* Texto em negrito */
+            text-transform: uppercase; /* Letras maiúsculas para um toque profissional */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Transições suaves */
+            width: 250px; /* Largura consistente */
+            max-width: 90%; /* Responsividade */
+            margin: 8px 0; /* Espaçamento entre os botões */
+            letter-spacing: 0.5px; /* Pequeno espaçamento entre letras */
+        }
+
+        #botoes button:hover {
+            background-color: #66BB6A; /* Verde mais claro ao passar o mouse */
+            transform: translateY(-2px); /* Leve levantamento */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Sombra mais pronunciada */
+        }
+
+        #botoes button:active {
+            background-color: #388E3C; /* Verde mais escuro ao clicar */
+            transform: translateY(0); /* Retorna à posição original */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra menor ao clicar */
+        }
+        /* --- Fim dos Estilos Profissionais para os Botões --- */
+
+
         /* Media queries para responsividade */
         @media (max-width: 768px) { /* Tablets */
             #graficoContainer {
@@ -148,6 +181,10 @@
             }
             #graficoPizza {
                 height: 400px !important; /* Adjust height for tablets */
+            }
+            #botoes button {
+                padding: 10px 20px; /* Reduce padding on smaller screens */
+                width: 220px; /* Slightly smaller width */
             }
         }
 
@@ -174,6 +211,11 @@
             }
              #graficoPizza {
                 height: 300px !important; /* Adjust height for mobile screens */
+            }
+            #botoes button {
+                padding: 8px 16px; /* Even less padding for mobile */
+                width: 100%; /* Full width on very small screens for better clickability */
+                max-width: 200px; /* Max width to prevent them from becoming too wide */
             }
         }
     </style>
@@ -502,8 +544,6 @@
                             color: (ctx) => {
                                 const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                                 if (total === 0) return '#000';
-                                const pct = (ctx.dataset.data[ctx.dataIndex] / total) * 100;
-                                // Always try to display inside for percentages, use color contrast
                                 const backgroundColor = ctx.dataset.backgroundColor[ctx.dataIndex];
                                 const hex = backgroundColor.startsWith('#') ? backgroundColor : '#FFFFFF';
                                 const r = parseInt(hex.slice(1, 3), 16);
@@ -525,7 +565,6 @@
                                 const pct = (context.dataset.data[context.dataIndex] / total) * 100;
                                 return pct >= 1; // Display label if slice is >= 1%
                             },
-                            // No connectorLine needed as labels are generally inside
                         },
                         tooltip: {
                             callbacks: {
